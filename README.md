@@ -1026,10 +1026,7 @@ git push origin feature/your-feature-name
 ## 📞 Support & Community
 
 - 📧 **Email**: support@warehouse-system.com
-- 💬 **Discord**: [Join our community](https://discord.gg/warehouse-wms)
 - 🐛 **Issues**: [GitHub Issues](https://github.com/your-username/warehouse-management-system/issues)
-- 📖 **Wiki**: [Documentation Wiki](https://github.com/your-username/warehouse-management-system/wiki)
-- 📺 **YouTube**: [Tutorial Videos](https://youtube.com/warehouse-wms)
 
 ---
 

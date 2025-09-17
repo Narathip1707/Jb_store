@@ -1025,8 +1025,8 @@ git push origin feature/your-feature-name
 
 ## 📞 Support & Community
 
-- 📧 **Email**: support@warehouse-system.com
-- 🐛 **Issues**: [GitHub Issues](https://github.com/your-username/warehouse-management-system/issues)
+- 📧 **Email**: narathip170747@gmail.com
+- 🐛 **Issues**: [GitHub Issues](https://github.com/narathip1707/warehouse-management-system/issues)
 
 ---
 

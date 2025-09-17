@@ -18,6 +18,34 @@
 
 ---
 
+## 🎯 Current Implementation Status
+
+### ✅ **Backend (Completed)**
+- ✅ **REST API Server**: Full Express.js + TypeScript implementation
+- ✅ **Database**: PostgreSQL with Prisma ORM (20+ models)
+- ✅ **Authentication**: JWT-based with role management (ADMIN, MANAGER, STAFF, VIEWER)
+- ✅ **API Endpoints**: Complete CRUD operations for all entities
+- ✅ **Docker Setup**: Containerized PostgreSQL database
+- ✅ **Test Data**: Seeded with comprehensive sample data
+
+### 🔧 **Server Status**
+- **Active Server**: Running on port 3004 (minimal-server.ts)
+- **Main Server Issue**: SIGINT handler causing crashes (workaround implemented)
+- **Alternative Server**: simple-server.ts available as backup
+
+### 🧪 **Testing & Development**
+- ✅ **API Testing**: PowerShell and JavaScript test scripts
+- ✅ **HTML Test Interface**: Interactive API testing page
+- ✅ **Authentication Testing**: Pre-configured test accounts
+
+### 🚧 **Frontend (Planned)**
+- ⏳ **Technology Stack**: React + TypeScript + Vite
+- ⏳ **UI Components**: Modern responsive design
+- ⏳ **State Management**: To be implemented
+- ⏳ **API Integration**: Will connect to existing backend
+
+---
+
 ## 📋 Table of Contents
 
 - [🎯 Features](#-features)
@@ -178,39 +206,67 @@ graph TB
 ### **Prerequisites**
 
 - 🐳 [Docker](https://www.docker.com/get-started) (20.10+)
-- 🐳 [Docker Compose](https://docs.docker.com/compose/install/) (2.0+)
+- 🐳 [Docker Compose](https://docs.docker.com/compose/install/) (2.0+)  
+- 💻 [Node.js](https://nodejs.org/) (18+)
 - 💻 [Git](https://git-scm.com/downloads)
 
-### **1-Minute Setup**
+### **Installation & Setup**
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/warehouse-management-system.git
-cd warehouse-management-system
+# 1. Clone the repository
+git clone https://github.com/your-username/warehouse_system.git
+cd warehouse_system
 
-# Run setup script (Linux/macOS)
-chmod +x setup-dev.sh
-./setup-dev.sh
+# 2. Start PostgreSQL database
+docker-compose up -d postgres
 
-# OR for Windows
-setup-dev.bat
+# 3. Install backend dependencies
+cd backend
+npm install
+
+# 4. Setup environment variables
+cp .env.example .env
+# Edit .env with your database credentials (default values should work)
+
+# 5. Run database migrations and seed data
+npx prisma migrate dev
+npx prisma db seed
+
+# 6. Start the backend server (recommended stable version)
+npm run minimal-server
 ```
 
 That's it! 🎉 Your development environment is ready.
 
 ### **Access the Application**
 
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| 🌐 **Frontend** | http://localhost:3001 | - |
-| 🔧 **Backend API** | http://localhost:3000 | - |
-| 🗄️ **pgAdmin** | http://localhost:5050 | admin@warehouse.local / admin123 |
-| 🔴 **Redis Commander** | http://localhost:8081 | - |
-| 📧 **MailHog** | http://localhost:8025 | - |
+| Service | URL | Status |
+|---------|-----|--------|
+| 🔧 **Backend API** | http://localhost:3004 | ✅ **ACTIVE** |
+| �️ **Database** | localhost:5432 | ✅ **ACTIVE** |
+| 🧪 **API Test Page** | `backend/api-test.html` | ✅ **Available** |
+| 🌐 **Frontend** | *Coming Soon* | ⏳ **Planned** |
 
-### **Default Login**
-- **Username**: `admin`
-- **Password**: `admin123`
+### **Test Accounts**
+
+| Role | Email | Password | Access Level |
+|------|-------|----------|--------------|
+| **Admin** | admin@warehouse.com | admin123 | Full system access |
+| **Manager** | manager@warehouse.com | manager123 | Management operations |
+| **Staff** | staff@warehouse.com | staff123 | Daily operations |
+
+### **Quick API Test**
+
+```bash
+# Test authentication
+curl -X POST http://localhost:3004/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@warehouse.com","password":"admin123"}'
+
+# Test inventory endpoint (replace TOKEN with JWT from login)
+curl -X GET http://localhost:3004/api/inventory \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
 ---
 
@@ -382,83 +438,261 @@ graph LR
 
 ### **Base URL**
 ```
-http://localhost:3000/api/v1
+http://localhost:3004/api
 ```
 
 ### **Authentication**
 ```bash
 # Login
-POST /auth/login
+POST /api/auth/login
 {
-  "username": "admin",
+  "email": "admin@warehouse.com",
   "password": "admin123"
 }
 
 # Response
 {
   "success": true,
+  "message": "Login successful",
   "data": {
-    "user": {...},
+    "user": {
+      "id": "uuid",
+      "email": "admin@warehouse.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "role": "ADMIN"
+    },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "..."
+    "refreshToken": "..."
   }
 }
+
+# Use token in subsequent requests
+Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
-### **Core Endpoints**
+### **API Status Check**
+```bash
+# Health check
+GET /api/health
+# Response: { "status": "OK", "timestamp": "..." }
+
+# Test authentication
+GET /api/auth/profile
+# Requires: Authorization header
+```
+
+### **Core API Endpoints**
 
 <details>
-<summary>📦 Products API</summary>
+<summary>👥 **Users API**</summary>
 
 ```bash
-# Get all products
-GET /products?page=1&limit=20&search=widget
+# Get all users (Admin only)
+GET /api/users
 
-# Get product by ID
-GET /products/{id}
+# Get user profile
+GET /api/users/profile
 
-# Create product
-POST /products
+# Create user (Admin only)  
+POST /api/users
 {
-  "sku": "SKU-001",
-  "name": "Widget A",
-  "category_id": "uuid",
-  "supplier_id": "uuid",
-  "cost_price": 10.00,
-  "selling_price": 15.00
+  "firstName": "John",
+  "lastName": "Doe", 
+  "email": "john@warehouse.com",
+  "password": "password123",
+  "role": "STAFF"
 }
 
-# Update product
-PUT /products/{id}
+# Update user
+PUT /api/users/{id}
 
-# Delete product (soft delete)
-DELETE /products/{id}
+# Delete user (Admin only)
+DELETE /api/users/{id}
 ```
 
 </details>
 
 <details>
-<summary>📊 Inventory API</summary>
+<summary>📦 **Products API**</summary>
 
 ```bash
-# Get inventory levels
-GET /inventory?warehouse_id=uuid&status=low_stock
+# Get all products
+GET /api/products?page=1&limit=20&search=widget
 
-# Get inventory by product
-GET /inventory/product/{product_id}
+# Get product by ID
+GET /api/products/{id}
+
+# Create product
+POST /api/products
+{
+  "sku": "PROD-001",
+  "name": "Sample Product",
+  "description": "Product description",
+  "categoryId": "category-uuid",
+  "supplierId": "supplier-uuid",
+  "costPrice": 10.50,
+  "sellingPrice": 15.99,
+  "weight": 1.2,
+  "dimensions": "10x5x3",
+  "reorderLevel": 50
+}
+
+# Update product
+PUT /api/products/{id}
+
+# Delete product
+DELETE /api/products/{id}
+```
+
+</details>
+
+<details>
+<summary>🏷️ **Categories API**</summary>
+
+```bash
+# Get all categories
+GET /api/categories
+
+# Create category
+POST /api/categories
+{
+  "name": "Electronics",
+  "description": "Electronic products",
+  "parentId": "parent-category-uuid" // optional
+}
+```
+
+</details>
+
+<details>
+<summary>🏭 **Suppliers API**</summary>
+
+```bash
+# Get all suppliers
+GET /api/suppliers
+
+# Create supplier
+POST /api/suppliers
+{
+  "name": "ABC Supplier Co.",
+  "contactPerson": "John Smith",
+  "email": "contact@abcsupplier.com",
+  "phone": "+1234567890",
+  "address": "123 Business St"
+}
+```
+
+</details>
+
+<details>
+<summary>🏢 **Warehouses API**</summary>
+
+```bash
+# Get all warehouses
+GET /api/warehouses
+
+# Create warehouse
+POST /api/warehouses
+{
+  "name": "Main Warehouse",
+  "code": "WH-001",
+  "address": "456 Warehouse Ave",
+  "managerId": "manager-user-uuid"
+}
+```
+
+</details>
+
+<details>
+<summary>📊 **Inventory API**</summary>
+
+```bash
+# Get all inventory
+GET /api/inventory
+
+# Get inventory by warehouse
+GET /api/inventory?warehouseId={warehouse-id}
+
+# Get low stock items  
+GET /api/inventory/low-stock
 
 # Stock adjustment
-POST /inventory/adjustments
+POST /api/inventory/adjust
 {
-  "warehouse_id": "uuid",
-  "reason": "count_variance",
+  "productId": "product-uuid",
+  "warehouseId": "warehouse-uuid", 
+  "locationId": "location-uuid",
+  "quantityChange": -5,
+  "reason": "DAMAGE",
+  "notes": "Found damaged items during inspection"
+}
+
+# Stock movement
+POST /api/inventory/move
+{
+  "productId": "product-uuid",
+  "fromWarehouseId": "warehouse1-uuid",
+  "toWarehouseId": "warehouse2-uuid", 
+  "quantity": 10
+}
+```
+
+</details>
+
+<details>
+<summary>📍 **Locations API**</summary>
+
+```bash
+# Get locations by warehouse
+GET /api/locations?warehouseId={warehouse-id}
+
+# Create location
+POST /api/locations
+{
+  "code": "A-01-01",
+  "name": "Aisle A, Bay 1, Level 1", 
+  "warehouseId": "warehouse-uuid",
+  "zone": "A",
+  "aisle": "01",
+  "shelf": "01",
+  "capacity": 100
+}
+```
+
+</details>
+
+<details>
+<summary>🛒 **Orders API**</summary>
+
+```bash
+# Get all orders
+GET /api/orders?type=purchase&status=pending
+
+# Create purchase order
+POST /api/orders/purchase
+{
+  "supplierId": "supplier-uuid",
+  "expectedDeliveryDate": "2024-12-25",
   "items": [
     {
-      "product_id": "uuid",
-      "location_id": "uuid",
-      "current_quantity": 100,
-      "adjusted_quantity": 95,
-      "notes": "Damaged items found"
+      "productId": "product-uuid",
+      "quantity": 100,
+      "unitPrice": 10.50
+    }
+  ]
+}
+
+# Create sales order
+POST /api/orders/sales
+{
+  "customerId": "customer-uuid",
+  "deliveryDate": "2024-12-25",
+  "items": [
+    {
+      "productId": "product-uuid", 
+      "quantity": 5,
+      "unitPrice": 15.99
     }
   ]
 }
@@ -466,21 +700,48 @@ POST /inventory/adjustments
 
 </details>
 
-<details>
-<summary>🛒 Orders API</summary>
+### **Testing the API**
 
-```bash
-# Create purchase order
-POST /purchase-orders
+1. **Using the HTML Test Interface**:
+   - Open `backend/api-test.html` in your browser
+   - Interactive forms for all API endpoints
+   - Built-in authentication handling
+
+2. **Using PowerShell Script**:
+   ```powershell
+   cd backend
+   .\test-api.ps1
+   ```
+
+3. **Using JavaScript Test Script**:
+   ```bash
+   cd backend  
+   node test-auth.js
+   ```
+
+### **Error Responses**
+
+All endpoints return standardized error responses:
+
+```json
 {
-  "supplier_id": "uuid",
-  "expected_date": "2024-01-20",
-  "items": [
-    {
-      "product_id": "uuid",
-      "quantity": 100,
-      "unit_price": 10.00
-    }
+  "success": false,
+  "message": "Error description",
+  "error": {
+    "code": "ERROR_CODE",
+    "details": "Detailed error information"
+  }
+}
+```
+
+Common HTTP status codes:
+- **200**: Success
+- **201**: Created  
+- **400**: Bad Request
+- **401**: Unauthorized
+- **403**: Forbidden
+- **404**: Not Found
+- **500**: Internal Server Error
   ]
 }
 
@@ -648,7 +909,75 @@ inventory_movements (id, product_id, movement_type, quantity, ...)
 
 ---
 
-## 🛠️ Tech Stack Options
+## � Troubleshooting
+
+### **Server Issues**
+
+**Main Server Crashes (SIGINT Handler Issue)**:
+```bash
+# Use the stable minimal server instead
+npm run minimal-server
+
+# Alternative backup server
+npm run simple-server
+```
+
+**Database Connection Issues**:
+```bash
+# Check if PostgreSQL container is running
+docker ps | grep postgres
+
+# Restart PostgreSQL
+docker-compose restart postgres
+
+# Check database connection
+npx prisma db push
+```
+
+**Migration Issues**:
+```bash
+# Reset database (CAUTION: This will delete all data)
+npx prisma migrate reset
+
+# Re-run migrations
+npx prisma migrate dev
+
+# Seed data
+npx prisma db seed
+```
+
+### **Common Error Solutions**
+
+| Error | Solution |
+|-------|----------|
+| `Port 3004 already in use` | Kill existing process: `npx kill-port 3004` |
+| `Database connection failed` | Check PostgreSQL is running: `docker-compose up -d postgres` |
+| `JWT token expired` | Re-login to get new token |
+| `Permission denied` | Check user role has required permissions |
+| `Prisma client not generated` | Run `npx prisma generate` |
+
+### **Development Commands**
+
+```bash
+# View logs
+docker-compose logs postgres
+
+# Connect to database
+npx prisma studio
+
+# Format code
+npm run format
+
+# Run type checking
+npm run type-check
+
+# Generate Prisma client
+npx prisma generate
+```
+
+---
+
+## �🛠️ Tech Stack Options
 
 We provide multiple technology stack options to suit different preferences and requirements:
 
